@@ -18,9 +18,9 @@ const STATUS_CONFIG: Record<
   ConnectionStatus,
   { color: string; label: string }
 > = {
-  disconnected: { color: '#FF3B30', label: 'Disconnected' },
-  connecting: { color: '#FFCC00', label: 'Connecting…' },
-  connected: { color: '#34C759', label: 'Connected to BLEFly' },
+  disconnected: { color: '#ff453a', label: 'No Link' },
+  connecting:   { color: '#ffd60a', label: 'Scanning' },
+  connected:    { color: '#30d158', label: 'Linked' },
 };
 
 export default function ConnectionPanel({
@@ -33,35 +33,28 @@ export default function ConnectionPanel({
   const isConnecting = status === 'connecting';
 
   return (
-    <View style={styles.container}>
-      {/* Title */}
-      <Text style={styles.title}>BLEFly Controller</Text>
-
-      {/* Status row */}
-      <View style={styles.statusRow}>
+    <View style={styles.bar}>
+      {/* Status indicator */}
+      <View style={styles.statusGroup}>
         <View style={[styles.dot, { backgroundColor: color }]} />
-        <Text style={[styles.statusText, { color }]}>{label}</Text>
+        <Text style={[styles.statusLabel, { color }]}>{label}</Text>
         {isConnecting && (
-          <ActivityIndicator
-            size="small"
-            color="#FFCC00"
-            style={{ marginLeft: 8 }}
-          />
+          <ActivityIndicator size="small" color="#ffd60a" style={{ marginLeft: 6 }} />
         )}
       </View>
 
-      {/* Action button */}
+      {/* Title */}
+      <Text style={styles.title}>BLEFLY</Text>
+
+      {/* Action */}
       <TouchableOpacity
-        style={[
-          styles.button,
-          isConnected && styles.buttonDisconnect,
-        ]}
+        style={[styles.btn, isConnected && styles.btnDanger]}
         onPress={isConnected ? onDisconnect : onConnect}
         disabled={isConnecting}
-        activeOpacity={0.7}
+        activeOpacity={0.6}
       >
-        <Text style={styles.buttonText}>
-          {isConnected ? 'Disconnect' : 'Connect'}
+        <Text style={styles.btnText}>
+          {isConnected ? 'Disconnect' : 'Link'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -69,45 +62,56 @@ export default function ConnectionPanel({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 24,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-  statusRow: {
+  bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1c1c1c',
+  },
+  statusGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 100,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    marginRight: 7,
   },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  button: {
-    marginTop: 18,
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 36,
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  buttonDisconnect: {
-    backgroundColor: '#FF3B30',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  statusLabel: {
+    fontSize: 12,
     fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  title: {
+    color: '#444',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 6,
+  },
+  btn: {
+    backgroundColor: '#1c1c1e',
+    borderWidth: 1,
+    borderColor: '#333',
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    borderRadius: 8,
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  btnDanger: {
+    borderColor: '#ff453a',
+  },
+  btnText: {
+    color: '#ccc',
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });

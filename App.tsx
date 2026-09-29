@@ -1,7 +1,7 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, View, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 import ConnectionPanel from './src/components/ConnectionPanel';
 import FlightControls from './src/components/FlightControls';
@@ -11,9 +11,13 @@ export default function App() {
   const { status, connect, disconnect, sendXY } = useBLE();
   const isConnected = status === 'connected';
 
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+  }, []);
+
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar style="light" />
+    <View style={styles.root}>
+      <StatusBar style="light" hidden />
 
       <ConnectionPanel
         status={status}
@@ -21,22 +25,41 @@ export default function App() {
         onDisconnect={disconnect}
       />
 
-      {isConnected && (
-        <View style={styles.controls}>
-          <FlightControls onSend={sendXY} />
+      {isConnected ? (
+        <FlightControls onSend={sendXY} />
+      ) : (
+        <View style={styles.idle}>
+          <Text style={styles.idleIcon}>⬡</Text>
+          <Text style={styles.idleText}>
+            {status === 'connecting'
+              ? 'Searching for BLEFly…'
+              : 'Tap Link to connect'}
+          </Text>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#111111',
-    paddingTop: 48,
+    backgroundColor: '#111',
   },
-  controls: {
+  idle: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  idleIcon: {
+    fontSize: 40,
+    color: '#222',
+  },
+  idleText: {
+    color: '#444',
+    fontSize: 14,
+    fontWeight: '500',
+    letterSpacing: 1,
   },
 });

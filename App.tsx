@@ -1,20 +1,42 @@
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native';
+
+import ConnectionPanel from './src/components/ConnectionPanel';
+import FlightControls from './src/components/FlightControls';
+import { useBLE } from './src/hooks/useBLE';
 
 export default function App() {
+  const { status, connect, disconnect, sendXY } = useBLE();
+  const isConnected = status === 'connected';
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={styles.root}>
+      <StatusBar style="light" />
+
+      <ConnectionPanel
+        status={status}
+        onConnect={connect}
+        onDisconnect={disconnect}
+      />
+
+      {isConnected && (
+        <View style={styles.controls}>
+          <FlightControls onSend={sendXY} />
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#111111',
+    paddingTop: 48,
+  },
+  controls: {
+    flex: 1,
   },
 });

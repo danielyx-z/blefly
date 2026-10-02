@@ -16,12 +16,27 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
 interface UseBLEReturn {
   status: ConnectionStatus;
+  /** Signal strength, 0 (none) to 4 (excellent). Updated every ~2s while connected. */
+  signal: number;
   /** Start scanning + connecting. Handles permissions automatically. */
   connect: () => void;
   /** Tear down connection. */
   disconnect: () => void;
   /** Send a throttled 2-byte packet. Only writes if values changed. */
   sendXY: (x: number, y: number) => void;
+}
+
+// ---------- signal helpers ----------
+
+const RSSI_INTERVAL_MS = 2000;
+
+/** dBm → 0..4 bars */
+function rssiToBars(rssi: number): number {
+  if (rssi >= -60) return 4;
+  if (rssi >= -70) return 3;
+  if (rssi >= -80) return 2;
+  if (rssi >= -90) return 1;
+  return 0;
 }
 
 // ---------- singleton BLE manager ----------
@@ -38,8 +53,10 @@ function getManager(): BleManager {
 
 export function useBLE(): UseBLEReturn {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
+  const [signal, setSignal] = useState(0);
   const deviceRef = useRef<Device | null>(null);
   const charRef = useRef<Characteristic | null>(null);
+  const rssiRef = useRef<number | null>(null);
 
   // Throttle state — kept in refs so the hot-path avoids re-renders.
   const lastSentRef = useRef<{ x: number; y: number }>({ x: CENTER, y: CENTER });
@@ -218,6 +235,34 @@ export function useBLE(): UseBLEReturn {
     [doSend],
   );
 
+  // ---- RSSI polling (only while connected) ----
+  useEffect(() => {
+    if (status !== 'connected') {
+      rssiRef.current = null;
+      setSignal(0);
+      return;
+    }
+
+    const tick = async () => {
+      const dev = deviceRef.current;
+      if (!dev) return;
+      try {
+        const { rssi } = await dev.readRSSI();
+        if (rssi == null) return;
+        const prev = rssiRef.current;
+        const avg = prev == null ? rssi : prev * 0.6 + rssi * 0.4;
+        rssiRef.current = avg;
+        setSignal(rssiToBars(avg)); // same value → React skips the re-render
+      } catch {
+        // link dropped mid-read; onDisconnected handles state
+      }
+    };
+
+    tick();
+    const id = setInterval(tick, RSSI_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [status]);
+
   // ---- cleanup on unmount ----
   useEffect(() => {
     return () => {
@@ -229,5 +274,5 @@ export function useBLE(): UseBLEReturn {
     };
   }, []);
 
-  return { status, connect, disconnect, sendXY };
+  return { status, signal, connect, disconnect, sendXY };
 }

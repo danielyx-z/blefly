@@ -1,1 +1,8 @@
 scp daniel@fractal-pop:C:/Users/daniel/Downloads/blefly/android/app/build/outputs/apk/release/app-release.apk ~/Downloads/
+
+
+
+npx expo prebuild
+
+
+cd android && gradlew assembleRelease

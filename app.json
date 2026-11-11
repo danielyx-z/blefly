@@ -2,14 +2,14 @@
   "expo": {
     "name": "BLEFly Controller",
     "slug": "blefly",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.astrangepotato.blefly",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to connect to and control your BLEFly robot.",
         "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to connect to and control your BLEFly robot."

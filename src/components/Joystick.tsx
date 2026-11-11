@@ -26,18 +26,21 @@ export default function Joystick({
   const pos = useRef({ x: 0, y: 0 });
   const knobRef = useRef<View>(null);
 
-  const updateKnob = (nx: number, ny: number) => {
-    pos.current = { x: nx, y: ny };
-    knobRef.current?.setNativeProps({
-      style: {
-        transform: [{ translateX: nx }, { translateY: ny }],
-      },
-    });
-  };
+  const panResponder = useMemo(() => {
+    const updateKnob = (nx: number, ny: number) => {
+      pos.current = { x: nx, y: ny };
+      knobRef.current?.setNativeProps({
+        style: {
+          transform: [{ translateX: nx }, { translateY: ny }],
+        },
+      });
+    };
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
+    // PanResponder only runs these handlers on gesture events, never during
+    // render, so touching refs inside them is safe — the compiler rule can't
+    // see that and reads the factory body as render-time code.
+    // eslint-disable-next-line react-hooks/refs
+    return PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
         onPanResponderGrant: () => {
@@ -68,9 +71,8 @@ export default function Joystick({
           updateKnob(0, 0);
           onRelease();
         },
-      }),
-    [maxOffset, onMove, onRelease],
-  );
+    });
+  }, [maxOffset, onMove, onRelease]);
 
   return (
     <View style={[styles.outer, { width: size, height: size, borderRadius: radius }]}>

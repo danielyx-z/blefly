@@ -1,0 +1,128 @@
+name: Build unsigned iOS IPA
+
+# Produces an UNSIGNED .ipa for sideloading with SideStore / AltStore.
+# SideStore re-signs it with your own Apple ID, so no Apple Developer
+# account or 99$/yr membership is involved.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to build
+        required: false
+        default: master
+  push:
+    branches: [master]
+    paths-ignore:
+      - 'firmware/**'
+      - '**.md'
+
+concurrency:
+  group: ios-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Select newest stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      # CNG: ios/ is generated, never committed. --no-install because we run
+      # pod install ourselves (lets us cache it and see its output).
+      - name: Generate native iOS project
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Cache CocoaPods specs
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/CocoaPods
+          key: cocoapods-${{ runner.os }}-${{ hashFiles('ios/Podfile') }}
+          restore-keys: cocoapods-${{ runner.os }}-
+
+      - name: Install pods
+        working-directory: ios
+        run: pod install
+
+      - name: Build (no code signing)
+        working-directory: ios
+        env:
+          EXPO_NO_TELEMETRY: 1
+        run: |
+          set -o pipefail
+          if command -v xcbeautify >/dev/null 2>&1; then FMT=xcbeautify; else FMT=cat; fi
+          xcodebuild \
+            -workspace BLEFlyController.xcworkspace \
+            -scheme BLEFlyController \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            EXPANDED_CODE_SIGN_IDENTITY="" \
+            ENABLE_USER_SCRIPT_SANDBOXING=NO \
+            build | $FMT
+
+      - name: Package unsigned IPA
+        run: |
+          set -euo pipefail
+          APP=$(find ios/build/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -print -quit)
+          echo "App bundle: $APP"
+          rm -rf Payload BLEFly-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          # Belt and braces: an unsigned build should have none of these.
+          rm -rf Payload/*.app/_CodeSignature Payload/*.app/embedded.mobileprovision
+          /usr/bin/zip -qry BLEFly-unsigned.ipa Payload
+          ls -lh BLEFly-unsigned.ipa
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BLEFly-unsigned-ipa
+          path: BLEFly-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      # Also publish as a GitHub Release (manual runs only) so SideStore can
+      # fetch the IPA from a stable URL instead of a short-lived artifact.
+      - name: Publish release
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios-${{ github.run_number }}
+          name: iOS build ${{ github.run_number }}
+          files: BLEFly-unsigned.ipa
+          body: |
+            Unsigned iOS build for SideStore / AltStore.
+            Version ${{ github.run_number }}, commit ${{ github.sha }}.
+          generate_release_notes: false

@@ -8,6 +8,8 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
+      "bundleIdentifier": "com.astrangepotato.blefly",
+      "buildNumber": "1",
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to connect to and control your BLEFly robot.",
         "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to connect to and control your BLEFly robot."

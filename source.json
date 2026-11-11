@@ -1,0 +1,40 @@
+{
+  "name": "BLEFly",
+  "identifier": "com.astrangepotato.blefly.source",
+  "subtitle": "BLEFly wing controller builds",
+  "description": "Unsigned iOS builds of the BLEFly bionic butterfly controller, for sideloading with SideStore.",
+  "iconURL": "https://raw.githubusercontent.com/danielyx-z/blefly/master/assets/icon.png",
+  "website": "https://github.com/danielyx-z/blefly",
+  "tintColor": "#007AFF",
+  "apps": [
+    {
+      "name": "BLEFly Controller",
+      "bundleIdentifier": "com.astrangepotato.blefly",
+      "developerName": "AStrangePotato",
+      "subtitle": "BLE wing controller for the bionic butterfly",
+      "localizedDescription": "Connects to the BLEFly ESP32 over Bluetooth LE and streams 2-byte [steer, throttle] packets to the wing servos.",
+      "iconURL": "https://raw.githubusercontent.com/danielyx-z/blefly/master/assets/icon.png",
+      "tintColor": "#007AFF",
+      "category": "utilities",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "buildVersion": "1",
+          "date": "2026-11-10",
+          "localizedDescription": "Landscape dual-slider layout (throttle + steering), live RSSI bars, unsigned for SideStore.",
+          "downloadURL": "https://github.com/danielyx-z/blefly/releases/download/ios-1/BLEFly-unsigned.ipa",
+          "size": 8496323,
+          "minOSVersion": "16.4"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSBluetoothAlwaysUsageDescription": "This app uses Bluetooth to connect to and control your BLEFly robot.",
+          "NSBluetoothPeripheralUsageDescription": "This app uses Bluetooth to connect to and control your BLEFly robot."
+        }
+      }
+    }
+  ],
+  "news": []
+}

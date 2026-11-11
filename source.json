@@ -18,6 +18,15 @@
       "category": "utilities",
       "versions": [
         {
+          "version": "1.0.1",
+          "buildVersion": "2",
+          "date": "2026-11-11",
+          "localizedDescription": "Holds full throttle properly — the app now keeps streaming the current stick position, so the craft no longer drops to glide after ~2 flaps. Landscape dual-slider layout, live RSSI bars, unsigned for SideStore.",
+          "downloadURL": "https://github.com/danielyx-z/blefly/releases/download/ios-5/BLEFly-unsigned.ipa",
+          "size": 8496513,
+          "minOSVersion": "16.4"
+        },
+        {
           "version": "1.0.0",
           "buildVersion": "1",
           "date": "2026-11-11",

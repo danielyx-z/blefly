@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -34,14 +34,20 @@ export default function FlightControls({ onSend }: Props) {
   const throttleRef = useRef(0);
   const steeringRef = useRef(CENTER);
   const onSendRef = useRef(onSend);
-  onSendRef.current = onSend;
+  // Assigned in an effect rather than during render so the ref read stays out
+  // of the render path (react-hooks/refs).
+  useEffect(() => {
+    onSendRef.current = onSend;
+  }, [onSend]);
 
-  // Animated value for the throttle knob (enables slow spring-back)
-  const throttleAnim = useRef(new Animated.Value(0)).current;
+  // Animated value for the throttle knob (enables slow spring-back).
+  // useState with a lazy initialiser: one instance for the component's
+  // lifetime, and no ref access during render.
+  const [throttleAnim] = useState(() => new Animated.Value(0));
   const springRef = useRef<Animated.CompositeAnimation | null>(null);
 
   // All active touches keyed by identifier
-  const activeTouches = useRef(new Map<number, TouchState>());
+  const activeTouches = useRef(new Map<string, TouchState>());
 
   // The midpoint X in screen coordinates that divides throttle (left) / steering (right).
   // Computed from onLayout so it's accurate regardless of device size.

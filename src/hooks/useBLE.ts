@@ -239,7 +239,6 @@ export function useBLE(): UseBLEReturn {
   useEffect(() => {
     if (status !== 'connected') {
       rssiRef.current = null;
-      setSignal(0);
       return;
     }
 
@@ -274,5 +273,7 @@ export function useBLE(): UseBLEReturn {
     };
   }, []);
 
-  return { status, signal, connect, disconnect, sendXY };
+  // Bars are meaningless unless we're connected, so derive rather than reset
+  // the state from an effect.
+  return { status, signal: status === 'connected' ? signal : 0, connect, disconnect, sendXY };
 }

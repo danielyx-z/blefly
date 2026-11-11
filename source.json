@@ -20,10 +20,10 @@
         {
           "version": "1.0.0",
           "buildVersion": "1",
-          "date": "2026-11-10",
-          "localizedDescription": "Landscape dual-slider layout (throttle + steering), live RSSI bars, unsigned for SideStore.",
-          "downloadURL": "https://github.com/danielyx-z/blefly/releases/download/ios-1/BLEFly-unsigned.ipa",
-          "size": 8496323,
+          "date": "2026-11-11",
+          "localizedDescription": "Landscape dual-slider layout (throttle + steering), live RSSI bars, unsigned for SideStore. Keeps streaming the current stick position, so holding full throttle no longer trips the craft's stale-link failsafe.",
+          "downloadURL": "https://github.com/danielyx-z/blefly/releases/download/ios-3/BLEFly-unsigned.ipa",
+          "size": 8496509,
           "minOSVersion": "16.4"
         }
       ],

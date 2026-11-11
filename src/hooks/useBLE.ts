@@ -30,6 +30,13 @@ interface UseBLEReturn {
 
 const RSSI_INTERVAL_MS = 2000;
 
+/**
+ * Keep-alive resend interval (ms). The firmware reverts to glide after
+ * ~500 ms of silence (stale-link failsafe), so this must stay comfortably
+ * under that while still being cheap: 10 Hz leaves 5 sends of margin.
+ */
+const KEEPALIVE_MS = 100;
+
 /** dBm → 0..4 bars */
 function rssiToBars(rssi: number): number {
   if (rssi >= -60) return 4;
@@ -234,6 +241,22 @@ export function useBLE(): UseBLEReturn {
     },
     [doSend],
   );
+
+  // ---- keep-alive stream (only while connected) ----
+  // A held stick produces no touch events, and sendXY() drops unchanged
+  // values, so without this the link goes silent and the firmware's 500 ms
+  // stale-link failsafe cuts throttle to glide after ~2 flaps. Resending the
+  // last commanded pair means "silence" only ever means a real link loss.
+  useEffect(() => {
+    if (status !== 'connected') return;
+
+    const id = setInterval(() => {
+      const { x, y } = lastSentRef.current;
+      doSend(x, y);
+    }, KEEPALIVE_MS);
+
+    return () => clearInterval(id);
+  }, [status, doSend]);
 
   // ---- RSSI polling (only while connected) ----
   useEffect(() => {
